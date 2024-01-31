@@ -40,3 +40,39 @@ def not_found(error):
 @app.errorhandler(400)
 def bad_request(error):
     return make_response(jsonify({'error': 'Bad request'}), 400)
+
+@app.route('/tasks/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    task = [task for task in tasks if task['id'] == task_id]
+    
+    if len(task) == 0:
+        abort(404)
+    
+    if not request.json:
+        abort(400)
+    
+    if 'title' in request.json and not isinstance(request.json['title'], str):
+        abort(400)
+    
+    if 'description' in request.json and not isinstance(request.json['description'], str):
+        abort(400)
+    
+    if 'done' in request.json and not isinstance(request.json['done'], bool):
+        abort(400)
+    
+    task[0]['title'] = request.json.get('title', task[0]['title'])
+    task[0]['description'] = request.json.get('description', task[0]['description'])
+    task[0]['done'] = request.json.get('done', task[0]['done'])
+    
+    return jsonify({'task': make_public_task(task[0])})
+
+
+@app.route('/tasks/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    task = [task for task in tasks if task['id'] == task_id]
+    if len(task) == 0:
+        abort(404)
+    
+    tasks.remove(task[0])
+    
+    return jsonify({'result': True})
